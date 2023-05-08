@@ -1,0 +1,145 @@
+---
+title: "Public Trust and Urban Local Governance"
+subtitle: "Evidence from Delhi, India"
+author: "Shagun Gupta"
+institute: "American University"
+date: "April 6, 2023"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(patchwork)
+library(survey)
+
+knitr::opts_chunk$set(
+  echo = FALSE, cache = FALSE, prompt = FALSE,
+  tidy = FALSE, comment = NA,
+  message = FALSE, warning = FALSE
+)
+
+#load IHDS-II survey data set - I downloaded TSV file from the ICPSR repository.
+pilot = read_xlsx("pilotdata_DEL2022v1.xlsx")
+```
+
+# Data
+
+## Trust in the Municipal Corporation of Delhi (MCD): Pilot Dataset 2022
+
+- Original cross-sectional sample of households in Southeast Delhi.  
+
+- 264 households across 8 unauthorized colonies living under jurisdiction of the South Delhi Municipal Corporation. 
+
+- Conducted in July 2022 as a pilot project for my dissertation. 
+
+- First such data set to analyze trust in local institutions, specifically among residents living in conditions of urban informality in the city. 
+
+---
+
+# Trust in the MCD 
+
+```{r slide one, fig.height=6, fig.width=12, dev='svg'}
+#bar plot - all obs. 
+pilot %>%
+  filter(trustscale != 0) %>%
+  group_by(trustscale) %>%
+  summarize(
+    n = n()) %>%
+    mutate(freq = n / sum(n) * 100) %>%
+  ggplot(aes(x = trustscale, y = freq, fill = trustscale)) +
+  geom_col() +  
+  scale_x_discrete(limits = c("1","2","3","4","5"), 
+                   breaks = c(1,2,3,4,5),
+                   labels=c("Distrust it greatly", 
+                            "Tend to distrust it", 
+                            "Not sure/don't know", 
+                            "Tend to trust it", 
+                            "Trust it a great deal")) +
+  geom_text(aes(label=round(freq, digits=2)), 
+                position=position_dodge(width=0.9), 
+                vjust=-0.25, size=5) +
+  labs(
+    x = "Trust in the MCD", 
+    y = "No. of households (% rel. frequency)",
+    title = "Trust in the Municipal Corporation of Delhi (N = 246 HHs)")+
+  scale_fill_viridis_c() +
+  theme_minimal() +                         
+  theme(legend.position="none",
+        axis.text=element_text(size=10))
+```
+
+---
+
+# Neighborhood Associations and Trust
+
+```{r slide two, fig.height=6, fig.width=12, dev='svg'}
+#plots - trust by existence of RWAs
+plotrwa_yes = pilot %>%
+  filter(trustscale != 0, rwa == "Yes") %>%
+  group_by(trustscale) %>%
+  summarize(
+    n = n()) %>%
+    mutate(freq = n / sum(n) * 100) %>%
+  ggplot(aes(x = trustscale, y = freq, fill = trustscale)) +
+  geom_col() +
+  scale_x_discrete(limits = c("1","2","3","4","5"), 
+                   breaks = c(1,2,3,4,5),
+                   labels=c("Distrust it greatly", 
+                            "Tend to distrust it", 
+                            "Not sure/don't know", 
+                            "Tend to trust it", 
+                            "Trust it a great deal")) +
+  geom_text(aes(label=round(freq, digits=2)), 
+                position=position_dodge(width=0.9), 
+                vjust=-0.25, size=5) +
+  labs(
+    x = "Trust in the MCD", 
+    y = "No. of households (% rel. frequency)",
+    title = "HHs living in colonies WITH RWA/Samiti (N=61)") +
+  scale_fill_continuous() +
+  theme_minimal() +                         
+  theme(legend.position="none",
+        axis.text.x=element_text(size=10, angle = 45, hjust = 0.8))
+
+plotrwa_no = pilot %>%
+  filter(trustscale != 0, rwa == "No") %>%
+  group_by(trustscale) %>%
+  summarize(
+    n = n()) %>%
+    mutate(freq = n / sum(n) * 100) %>%
+  ggplot(aes(x = trustscale, y = freq, fill = trustscale)) +
+  geom_col() +
+  scale_x_discrete(limits = c("1","2","3","4","5"), 
+                   breaks = c(1,2,3,4,5),
+                   labels=c("Distrust it greatly", 
+                            "Tend to distrust it", 
+                            "Not sure/don't know", 
+                            "Tend to trust it", 
+                            "Trust it a great deal")) +
+  geom_text(aes(label=round(freq, digits=2)), 
+                position=position_dodge(width=0.9), 
+                vjust=-0.25, size=5) +
+  labs(
+    x = "Trust in the MCD", 
+    y = "No. of households (% rel. frequency)",
+    title = "HHs living in colonies W/O RWA/Samiti (N=142)") +
+  scale_fill_continuous() +
+  theme_minimal() +                         
+  theme(legend.position="none", 
+        axis.text.x=element_text(size=10, angle = 45, hjust = 0.8))
+
+
+plotrwa_yes + plotrwa_no + 
+  plot_layout(guides = 'collect', ncol = 2)
+```
+
